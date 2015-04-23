@@ -1,71 +1,64 @@
 "use strict";
 
-var theme = require('./directions_theme.js');
-var links = require('./links.js');
-var options = require('./options.js');
-var tools = require('./tools.js');
-var markerFactory = require('./markers.js');
-var OsrmMap = require('./osrm-map.js');
+var OSRM = require('osrm-client')
+var osrm = new OSRM("//localhost:5000");
+var polyline = require('polyline');
 
-var parsedOptions = links.parse(window.location.search);
-var viewOptions = L.extend(options.viewDefaults, parsedOptions);
+// create a map in the "map" div, set the view to a given place and zoom
+var map = L.map('map').setView([52.516628,13.452569], 13);
 
-var map = new OsrmMap('map', {
-  zoomControl: false,
-  layers: [options.layers[viewOptions.layer]]
-}).setView(viewOptions.center, viewOptions.zoom);
+// add an OpenStreetMap tile layer
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
 
-/*
- * Setup controls
- */
-var lrm = L.Routing.control(L.extend({language: viewOptions.language,
-                                      units: viewOptions.units,
-                                      serviceUrl: options.services[viewOptions.service],
-                                     },
-                                     L.extend(options.controlDefaults,
-                                              theme.options.lrm)
-                                    )).addTo(map);
-// We need to do this the ugly way because of cyclic dependencies...
-lrm.getPlan().options.createMarker = markerFactory(lrm, theme.options.popup);
-tools.control(lrm, L.extend({
-                              position: 'bottomleft',
-                              language: viewOptions.language
-                            },
-                            theme.options.tools)).addTo(map);
-L.control.layers(options.layers, {}, {position: 'bottomleft'}).addTo(map);
-L.control.scale({position: 'bottomleft'}).addTo(map);
+var route = L.layerGroup().addTo(map);
+var currRoute;
 
-// Click handler that adds waypoints
-map.on('click', function(e) {
-  var plan = lrm.getPlan(),
-      wps = plan.getWaypoints(),
-      i;
-  for (i = 0; i < wps.length; i++)
-  {
-    if (wps[i].latLng === undefined || wps[i].latLng === null)
-    {
-      plan.spliceWaypoints(i, 1, e.latlng);
-      break;
-    }
+// add markers when clicked on map and save them in an array
+var markerArray = [];
+var markerOptions = {draggable: true};
+map.on('click', newMarkerLocs);
+
+function newMarkerLocs(e) {
+  var newMarker = L.marker(e.latlng, markerOptions);
+  newMarker.addTo(map);
+  markerArray.push(newMarker);
+
+  var query = [];
+  var m;
+  for (m in markerArray) {
+    query.push([markerArray[m].getLatLng().lat, markerArray[m].getLatLng().lng]);
   }
-});
 
-theme.setup(lrm);
+  osrm.trip({coordinates:query}, function (err, result) {
+    if (result != undefined && result.route_geometry != undefined) {
+      var roundtrip = polyline.decode(result.route_geometry, 6);
+      
+      var latlng;
+      var lineLatLng = [];
+      for (latlng in roundtrip) {
+        var newLatLng = L.latLng(roundtrip[latlng][0], roundtrip[latlng][1]);
+        lineLatLng.push(newLatLng); 
+      }
+      if (currRoute != undefined) {
+        route.removeLayer(currRoute);
+      }
+      currRoute = L.polyline(lineLatLng);
+      route.addLayer(currRoute);
 
-/*
- * Initial route request
- */
-function initialRouteCallback() {
-  lrm.off('routeselected', initialRouteCallback);
-  lrm.off('routingerror', initialRouteCallback);
-
-  lrm.selectAlternative(viewOptions.alternative);
-}
-
-if (viewOptions.alternative) {
-  lrm.on('routeselected', initialRouteCallback);
-  lrm.on('routingerror', initialRouteCallback);
-}
-
-lrm.setWaypoints(viewOptions.waypoints);
-
+      var p;
+      for (p in result.loc_permutation){
+        if (result.loc_permutation[p] == -1) {
+          markerArray[p].bindPopup('Couldn\'t find a route to here.').openPopup();
+        }
+        else {
+          markerArray[p].bindPopup('Stop ' + result.loc_permutation[p]);  
+        }
+      }
+    }
+    else if (markerArray.length > 0) {
+      markerArray[0].bindPopup('Couldn\'t find a route.').openPopup();
+    }
+  });
+};
