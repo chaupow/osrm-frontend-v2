@@ -20,14 +20,11 @@ var markerArray = [];
 var markerOptions = {draggable: true};
 map.on('click', newMarkerLocs);
 
-function newMarkerLocs(e) {
-  var newMarker = L.marker(e.latlng, markerOptions);
-  newMarker.addTo(map);
-  markerArray.push(newMarker);
-
+function displayRoute(e) {
   var query = [];
   var m;
-  for (m in markerArray) {
+  for (m = 0; m < markerArray.length; m++) {
+    console.log(m);
     query.push([markerArray[m].getLatLng().lat, markerArray[m].getLatLng().lng]);
   }
 
@@ -37,7 +34,7 @@ function newMarkerLocs(e) {
       
       var latlng;
       var lineLatLng = [];
-      for (latlng in roundtrip) {
+      for (latlng = 0; latlng < roundtrip.length; latlng++) {
         var newLatLng = L.latLng(roundtrip[latlng][0], roundtrip[latlng][1]);
         lineLatLng.push(newLatLng); 
       }
@@ -48,17 +45,25 @@ function newMarkerLocs(e) {
       route.addLayer(currRoute);
 
       var p;
-      for (p in result.loc_permutation){
+      for (p = 0; p < result.loc_permutation.length; p++){
         if (result.loc_permutation[p] == -1) {
           markerArray[p].bindPopup('Couldn\'t find a route to here.').openPopup();
         }
         else {
-          markerArray[p].bindPopup('Stop ' + result.loc_permutation[p]);  
+          markerArray[p].bindPopup('Stop ' + result.loc_permutation[p] + ", Marker " + p);  
         }
       }
     }
-    else if (markerArray.length > 0) {
-      markerArray[0].bindPopup('Couldn\'t find a route.').openPopup();
+    else if (markerArray.length > 1) {
+      markerArray[p].bindPopup('Couldn\'t find a route.');  
     }
   });
+};
+
+function newMarkerLocs(e) {
+  var newMarker = L.marker(e.latlng, markerOptions);
+  newMarker.addTo(map);
+  markerArray.push(newMarker);
+  displayRoute(e);
+  newMarker.on('dragend', displayRoute);
 };
