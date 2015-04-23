@@ -50,7 +50,7 @@ function displayRoute(e) {
           markerArray[p].bindPopup('Couldn\'t find a route to here.').openPopup();
         }
         else {
-          markerArray[p].bindPopup('Stop ' + result.loc_permutation[p] + ", Marker " + p);  
+          markerArray[p].bindPopup('Stop ' + result.loc_permutation[p]);  
         }
       }
     }
