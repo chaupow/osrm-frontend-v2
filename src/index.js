@@ -5,7 +5,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiY2hhdXBvdyIsImEiOiJZX29XRnNFIn0.5eui1ITuIWOxZ
 var map = new mapboxgl.Map({
   container: 'map', // container id
   style: 'mapbox://styles/mapbox/dark-v9', //hosted style id
-  center: [135.768, 35.0116], // starting position
+  //center: [135.768, 35.0116], // starting position
+  center: [7.439641,43.746728], // starting position
   zoom: 13 // starting zoom
 });
 
@@ -24,7 +25,8 @@ map.on('load', function () {
 
 
 var pizzeria = new mapboxgl.Popup({closeOnClick: false, closeButton: false})
-  .setLngLat([135.768, 35.0116])
+  //.setLngLat([135.768, 35.0116])
+  .setLngLat([7.439641,43.746728])
   .setHTML('🍕')
   .addTo(map);
 
@@ -46,7 +48,10 @@ function addDelivery(e) {
 }
 
 function displayTrip() {
-  request('http://router.project-osrm.org/trip/v1/driving/' + deliveriesLngLat() + '?geometries=geojson', function (error, response, body) {
+  //var url = 'https://router.project-osrm.org/trip/v1/driving/';
+  var url = 'http://localhost:8080/trip/v1/mapbox/driving/';
+  url += deliveriesLngLat() + '?geometries=geojson&access_token=pk.eyJ1IjoiZnJlZW5lcmQ5IiwiYSI6ImNpcHBjbWd2bDAwMG9kZmtzMmU5MXhmNHkifQ._1rzNzfq83Nx-h2IYiu0WQ';
+  request(url, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       result = JSON.parse(body);
       for (t = 0; t < result.trips.length; t++) {
