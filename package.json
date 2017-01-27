@@ -1,27 +1,36 @@
 {
-  "name": "osrm",
-  "version": "0.0.1",
-  "description": "Front-end for the OSRM API",
-  "main": "src/osrm.js",
+  "name": "osrm-frontend",
+  "version": "0.4.0",
+  "description": "frontend interface for project osrm",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "eslint src/*js i18n/*.js",
+    "build": "browserify -d src/index.js -s osrm > bundle.raw.js && uglifyjs bundle.raw.js -c -m --source-map=bundle.js.map -o bundle.js",
+    "start-index": "budo src/index.js --serve=bundle.js --live -d | bistre",
+    "start": "npm run build && npm run start-index",
+    "prepub": "npm run build"
+  },
   "repository": {
     "type": "git",
-    "url": "git://github.com/Project-OSRM/osrm-frontend-v2.git"
+    "url": "osrm-frontend"
   },
-  "scripts": {
-    "test": "jshint src",
-    "watch": "watchify -v -d src/index.js -s osrm -o js/osrm.dev.js",
-    "build-dev": "browserify -d src/index.js -s osrm > js/osrm.dev.js",
-    "build-min": "browserify src/index.js -s osrm | uglifyjs -c warnings=false -m > js/osrm.min.js",
-    "prepublish": "npm run build-dev && npm run build-min"
+  "keywords": [
+    "osrm",
+    "lrm",
+    "directions",
+    "routing",
+    "api"
+  ],
+  "author": "amy lee walton",
+  "license": "ISC",
+  "devDependencies": {
+    "bistre": "^1.0.1",
+    "browserify": "^10.2.4",
+    "budo": "^4.1.0",
+    "uglify-js": "^2.4.24"
   },
   "dependencies": {
-    "osrm-client": "chaupow/osrm-client-js",
-    "polyline": "0.0.3"
-  },
-  "devDependencies": {
-    "browserify": "2",
-    "uglify-js": "^2.3.6",
-    "jshint": "2"
-  },
-  "license": "BSD-2-Clause"
+    "mapbox-gl": "~0.31.0",
+    "request": "~2.79.0"
+  }
 }
