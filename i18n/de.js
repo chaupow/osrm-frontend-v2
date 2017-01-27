@@ -1,10 +1,12 @@
 module.exports = {
   name: "Deutsch",
-  'Link': 'Link',
+  key: "de",
+  'Open in Debug Map': 'In Debug Map öffnen',
+  'Open in Mapillary': 'In Mapillary öffnen',
   'Open in editor': 'Im Editor öffnen',
-  'Open in JOSM': 'In JSOM öffnen',
-  'Download as GPX': 'Als GPX herunterladen',
-  'Short': 'Verkürzt',
-  'Select language and units': 'Sprache und Einheiten auswählen',
-  'Print': 'Drucken',
+  'Open in JOSM': 'In JOSM öffnen',
+  'Select language': 'Sprache auswählen',
+  'Start - press enter to drop marker': 'Start - drücken um einen Marker zu plazieren',
+  'End - press enter to drop marker': 'Ende - drücken um einen Marker zu plazieren',
+  'Via point - press enter to drop marker': 'Zwischenstop - drücken um einen Marker zu plazieren'
 };
